@@ -26,7 +26,9 @@ EcCiA402Drive::EcCiA402Drive()
 : GenericEcSlave() {}
 EcCiA402Drive::~EcCiA402Drive() {}
 
-bool EcCiA402Drive::initialized() const {return initialized_;}
+bool EcCiA402Drive::initialized() const {
+  return initialized_ && (homing_complete_ || !auto_homing_);
+}
 
 void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
 {
@@ -181,6 +183,9 @@ bool EcCiA402Drive::setup_from_config(YAML::Node drive_config)
   }
   if (drive_config["auto_state_transitions"]) {
     auto_state_transitions_ = drive_config["auto_state_transitions"].as<bool>();
+  }
+  if (drive_config["auto_homing"]) {
+    auto_homing_ = drive_config["auto_homing"].as<bool>();
   }
   return true;
 }

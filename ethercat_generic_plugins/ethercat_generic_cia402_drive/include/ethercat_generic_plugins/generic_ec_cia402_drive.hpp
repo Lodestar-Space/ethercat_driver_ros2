@@ -64,8 +64,12 @@ protected:
   int fault_reset_command_interface_index_ = -1;
   bool last_fault_reset_command_ = false;
   double last_position_ = std::numeric_limits<double>::quiet_NaN();
-  
+
   bool default_position_updated_ = false;
+  
+  // Homing parameters
+  bool homing_complete_ = false;
+  bool auto_homing_ = false;
 
   /** returns device state based upon the status_word */
   DeviceState deviceState(uint16_t status_word);
