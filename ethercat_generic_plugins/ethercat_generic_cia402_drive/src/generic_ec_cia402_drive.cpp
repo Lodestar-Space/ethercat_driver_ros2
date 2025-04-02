@@ -26,7 +26,7 @@ EcCiA402Drive::EcCiA402Drive()
 : GenericEcSlave() {}
 EcCiA402Drive::~EcCiA402Drive() {}
 
-bool EcCiA402Drive::initialized() const {
+bool EcCiA402Drive::initialized() {
   return initialized_ && (homing_complete_ || !auto_homing_);
 }
 
