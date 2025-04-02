@@ -15,6 +15,7 @@
 // Author: Maciej Bednarczyk (macbednarczyk@gmail.com)
 
 #include <numeric>
+#include <iostream>
 
 #include "ethercat_generic_plugins/generic_ec_cia402_drive.hpp"
 
@@ -72,6 +73,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
           {
             //only update the default position once
             default_position_updated_ = true;
+            std::cout<< "default position updated" << std::endl;
           }
           else 
           {
