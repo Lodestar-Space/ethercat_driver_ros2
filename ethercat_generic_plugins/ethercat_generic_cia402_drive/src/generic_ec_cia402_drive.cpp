@@ -56,9 +56,41 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
   // setup current position as default position
   if (pdo_channels_info_[index].index == CiA402D_RPDO_POSITION) {
     if (mode_of_operation_display_ != ModeOfOperation::MODE_NO_MODE) {
-      pdo_channels_info_[index].default_value =
-        pdo_channels_info_[index].factor * last_position_ +
-        pdo_channels_info_[index].offset;
+
+      auto& pdo_info = pdo_channels_info_[index];
+      auto interface_index = pdo_info.interface_index;
+      double new_default = pdo_info.factor * last_position_ + pdo_info.offset;
+
+      if (interface_index >= 0 ){
+        bool command_interface_nan = std::isnan(command_interface_ptr_->at(pdo_info.interface_index));
+        
+        if (!command_interface_nan || !default_position_updated_)
+        {
+          pdo_info.default_value = new_default;
+
+          if (command_interface_nan) 
+          {
+            //only update the default position once
+            default_position_updated_ = true;
+          }
+          else 
+          {
+            // in the case command interface is not nan we reset 
+            // the default position updated flag so that if command
+            // interface becomes nan agian, we can still do the first update of default position
+            default_position_updated_ = false;
+          }
+
+        }
+      }
+      else //fall through case to original behaviour, idk the proper error handlign yet
+      {
+        pdo_info.default_value = new_default;
+      }
+
+      // pdo_channels_info_[index].default_value =
+      //   pdo_channels_info_[index].factor * last_position_ +
+      //   pdo_channels_info_[index].offset;
     }
     pdo_channels_info_[index].override_command =
       (mode_of_operation_display_ != ModeOfOperation::MODE_CYCLIC_SYNC_POSITION) ? true : false;
