@@ -36,10 +36,21 @@ class EcCiA402Drive : public GenericEcSlave
 public:
   EcCiA402Drive();
   virtual ~EcCiA402Drive();
-  /** Returns true if drive has reached "operation enabled" state.
-   *  The transition through the state machine is handled automatically. */
+  
+  /**
+   * @brief Returns true if drive is initalized and homing is complete if enabled.
+   * 
+   * @return true 
+   * @return false 
+   */
   bool initialized() override;
 
+  /**
+   * @brief Process data from the drive.
+   * 
+   * @param index 
+   * @param domain_address 
+   */
   virtual void processData(size_t index, uint8_t * domain_address);
 
   virtual bool setupSlave(
@@ -47,10 +58,12 @@ public:
     std::vector<double> * state_interface,
     std::vector<double> * command_interface);
 
+  
+
+protected:
   int8_t mode_of_operation_display_ = 0;
   int8_t mode_of_operation_ = -1;
 
-protected:
   uint32_t counter_ = 0;
   uint16_t last_status_word_ = -1;
   uint16_t status_word_ = 0;
