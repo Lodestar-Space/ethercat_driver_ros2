@@ -54,6 +54,33 @@ public:
     }
   }
 
+
+  void ec_read(uint8_t * buffer)
+  {
+  
+    if (data_type == "uint8") {
+      data = static_cast<uint8_t>(EC_READ_U8(buffer));
+    } else if (data_type == "int8") {
+      data = static_cast<int8_t>(EC_READ_S8(buffer));
+    } else if (data_type == "uint16") {
+      data = static_cast<uint16_t>(EC_READ_U16(buffer));
+    } else if (data_type == "int16") {
+      data = static_cast<int16_t>(EC_READ_S16(buffer));
+    } else if (data_type == "uint32") {
+      data = static_cast<uint32_t>(EC_READ_U32(buffer));
+    } else if (data_type == "int32") {
+      data = static_cast<int32_t>(EC_READ_S32(buffer));
+    } else if (data_type == "uint64") {
+      data = static_cast<uint64_t>(EC_READ_U64(buffer));
+    } else if (data_type == "int64") {
+      data = static_cast<int64_t>(EC_READ_S64(buffer));
+    } else if (data_type == "bool") {
+      data = static_cast<bool>(EC_READ_U8(buffer));
+    } else {
+      data = 0; //! silent error
+    }
+  }
+
   bool load_from_config(YAML::Node sdo_config)
   {
     // index
