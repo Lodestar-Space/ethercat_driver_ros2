@@ -45,6 +45,8 @@ public:
     */
   int configSlaveSdo(uint16_t slave_position, SdoConfigEntry sdo_config, uint32_t * abort_code);
 
+  int readSlaveSdo(uint16_t slave_position, SdoConfigEntry sdo_config, uint32_t * abort_code);
+
   /** call after adding all slaves, and before update */
   bool activate();
 

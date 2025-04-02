@@ -164,6 +164,34 @@ int EcMaster::configSlaveSdo(
   return ret;
 }
 
+int EcMaster::readSlaveSdo(uint16_t slave_position, SdoConfigEntry sdo_config, uint32_t * abort_code)
+{
+  uint8_t buffer[8];
+  size_t size;
+  int ret = ecrt_master_sdo_upload(
+    master_,
+    slave_position,
+    sdo_config.index,
+    sdo_config.sub_index,
+    buffer,
+    8,
+    &size,
+    abort_code
+  );
+
+  if (!ret) {
+    //check against expected size
+    if (size != sdo_config.data_size()) {
+      printWarning("Read slave SDO. Unexpected size. Expected: " + std::to_string(sdo_config.data_size()) + " Got: " + std::to_string(size));
+      return -1;
+    }
+    sdo_config.buffer_read(buffer);
+  }
+
+  return ret;
+}
+
+
 void EcMaster::registerPDOInDomain(
   uint16_t alias, uint16_t position,
   std::vector<uint32_t> & channel_indices,
