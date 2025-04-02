@@ -55,7 +55,7 @@ public:
   }
 
 
-  void ec_read(uint8_t * buffer)
+  void buffer_read(uint8_t * buffer)
   {
   
     if (data_type == "uint8") {
