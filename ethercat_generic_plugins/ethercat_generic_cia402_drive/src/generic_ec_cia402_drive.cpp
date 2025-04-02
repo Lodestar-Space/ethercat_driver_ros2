@@ -330,31 +330,31 @@ uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
 
 bool EcCiA402Drive::checkHomingStatus(uint16_t status_word)
 {
-  uint16_t homing_state = status_word & HomingState::HOMING_MASK;
+  uint16_t homing_state = status_word & static_cast<uint16_t>(HomingState::HOMING_MASK);
   //TODO use proper logging here
   switch (homing_state) 
   {
-    case HomingState::HOMING_IN_PROGRESS: 
+    case static_cast<uint16_t>(HomingState::HOMING_IN_PROGRESS): 
     {
       break;
     }
-    case HomingState::HOMING_NOT_STARTED: 
+    case static_cast<uint16_t>(HomingState::HOMING_NOT_STARTED): 
     {
       std::cout << "Homing not started" << std::endl;
       break;
     }
-    case HomingState::HOMING_ATTAINED: 
+    case static_cast<uint16_t>(HomingState::HOMING_ATTAINED): 
     {
       std::cout << "Homing attained" << std::endl;
       std::cout << "Homing complete" << std::endl;
       return true;
     }
-    case HomingState::HOMING_COMPLETE: 
+    case static_cast<uint16_t>(HomingState::HOMING_COMPLETE): 
     {
       std::cout << "Homing complete" << std::endl;
       return true;
     }
-    case HomingState::HOMING_ERROR: 
+    case static_cast<uint16_t>(HomingState::HOMING_ERROR): 
     {
       std::cout << "Homing error" << std::endl;
       break;
