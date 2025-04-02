@@ -16,6 +16,7 @@
 
 #include <numeric>
 #include <iostream>
+#include <chrono>
 
 #include "ethercat_generic_plugins/generic_ec_cia402_drive.hpp"
 
@@ -52,6 +53,62 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
         pdo_channels_info_[index].default_value = transition(
           state_,
           pdo_channels_info_[index].ec_read(domain_address));
+      }
+      auto& control_word_pdo =  pdo_channels_info_[index];
+      auto& control_word = control_word_pdo.default_value;
+      if (auto_homing_ && !homing_complete_) {
+        //TODOget homing method
+        //!if homing method is 0,35,37 then we skip all this
+
+        //wait to get to state_operation_enabled
+        if (state_ == STATE_OPERATION_ENABLED) {
+          //change mode of operation to homing
+          if (mode_of_operation_ != ModeOfOperation::MODE_HOMING) {
+            prev_mode_of_operation_ = mode_of_operation_;
+            mode_of_operation_ = ModeOfOperation::MODE_HOMING;        
+          }
+          
+          //cwait for mode_of_operation_display has changed
+          if (mode_of_operation_display_ == ModeOfOperation::MODE_HOMING) {
+            //set control word to start homing
+            if (!homing_started_)
+            {
+              control_word = 0x1F; 
+              homing_started_ = true;
+              homing_start_time_ = std::chrono::steady_clock::now();
+            }
+
+            if (homing_started_) //explicit for clarity
+            {
+              //check if homing is complete
+              //mointor status word wiht timeout 
+              if (checkHomingStatus(status_word_))
+              {
+                std::cout<< "Homing complete" << std::endl;
+                // set contro word back to operation enabled
+                control_word = 0x0F;
+                homing_complete_ = true;
+                //set mode of operation back to previous mode
+                mode_of_operation_ = prev_mode_of_operation_;
+                
+              }
+
+              if (std::chrono::steady_clock::now() - homing_start_time_ > homing_timeout_)
+              {
+                std::cout<< "Homing timeout" << std::endl;
+                control_word = 0x0F;
+                homing_complete_ = true; //umm??? //TODO figure out mitigation here
+                //set mode of operation back to previous mode
+                mode_of_operation_ = prev_mode_of_operation_;
+              }
+
+            }
+
+          }
+
+          //then have error handling somehow for halting??
+        }
+
       }
     }
   }
@@ -187,6 +244,13 @@ bool EcCiA402Drive::setup_from_config(YAML::Node drive_config)
   if (drive_config["auto_homing"]) {
     auto_homing_ = drive_config["auto_homing"].as<bool>();
   }
+  if (drive_config["homing_timeout"]) { //expect timeout in seconds
+    homing_timeout_ = std::chrono::milliseconds(
+        static_cast<int64_t>(
+            drive_config["homing_timeout"].as<double>() * 1000
+        )
+    );
+  }
   return true;
 }
 
@@ -262,6 +326,46 @@ uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
       break;
   }
   return control_word;
+}
+
+bool EcCiA402Drive::checkHomingStatus(uint16_t status_word)
+{
+  uint16_t homing_state = status_word & HomingState::HOMING_MASK;
+  //TODO use proper logging here
+  switch (homing_state) 
+  {
+    case HomingState::HOMING_IN_PROGRESS: 
+    {
+      break;
+    }
+    case HomingState::HOMING_NOT_STARTED: 
+    {
+      std::cout << "Homing not started" << std::endl;
+      break;
+    }
+    case HomingState::HOMING_ATTAINED: 
+    {
+      std::cout << "Homing attained" << std::endl;
+      std::cout << "Homing complete" << std::endl;
+      return true;
+    }
+    case HomingState::HOMING_COMPLETE: 
+    {
+      std::cout << "Homing complete" << std::endl;
+      return true;
+    }
+    case HomingState::HOMING_ERROR: 
+    {
+      std::cout << "Homing error" << std::endl;
+      break;
+    }
+    default: 
+    {
+      std::cout << "Homing state not defined" << std::endl;
+      break;
+    }
+  }
+  return false;
 }
 
 }  // namespace ethercat_generic_plugins
