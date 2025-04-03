@@ -61,7 +61,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
         //TODOget homing method
         //!if homing method is 0 then we skip all this
 
-        if (homing_complete_ && mode_of_operation_ == ModeOfOperation::MODE_HOMING)
+        if (state_ == STATE_OPERATION_ENABLED && homing_complete_ && mode_of_operation_ == ModeOfOperation::MODE_HOMING)
         {
           std::cout<< "Switching Homing mode" << std::endl;
           mode_of_operation_ = prev_mode_of_operation_;
@@ -121,13 +121,6 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
           }
       
         }
-        else if (state_ != STATE_OPERATION_ENABLED && !homing_complete_)
-        {
-          std::cout<< "Homing not complete, resetting homing varibales" << std::endl;
-          homing_complete_ = false;
-          homing_started_ = false;
-        }
-      
 
       }
     
