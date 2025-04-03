@@ -112,8 +112,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
         }
 
       }
-
-      if (auto_homing_ && homing_complete_ && mode_of_operation_display_ == ModeOfOperation::MODE_HOMING)
+      else if (auto_homing_ && homing_complete_ && mode_of_operation_display_ == ModeOfOperation::MODE_HOMING)
       {
         std::cout<< "Switching Homing mode" << std::endl;
         mode_of_operation_ = prev_mode_of_operation_;
