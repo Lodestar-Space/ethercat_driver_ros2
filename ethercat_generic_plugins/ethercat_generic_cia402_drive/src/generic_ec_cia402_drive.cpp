@@ -72,7 +72,8 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
           //change mode of operation to homing
           if (mode_of_operation_ != ModeOfOperation::MODE_HOMING) {
             prev_mode_of_operation_ = mode_of_operation_;
-            mode_of_operation_ = ModeOfOperation::MODE_HOMING;        
+            mode_of_operation_ = ModeOfOperation::MODE_HOMING;  
+               
           }
           
           //cwait for mode_of_operation_display has changed
@@ -98,6 +99,8 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
                 // set contro word back to operation enabled
                 control_word = 0x0F;
                 homing_complete_ = true;
+                //force a update to default position
+              default_position_updated_ = false;   
                 
               }
 
@@ -110,6 +113,8 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
                 }
                 control_word = 0x0F;
                 homing_complete_ = true; //umm??? //TODO figure out mitigation here
+                //force a update to default position
+                default_position_updated_ = false;   
               }
 
             }
