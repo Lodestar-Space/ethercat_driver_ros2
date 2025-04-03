@@ -17,6 +17,7 @@
 #include <numeric>
 #include <iostream>
 #include <chrono>
+#include <string>
 
 #include "ethercat_generic_plugins/generic_ec_cia402_drive.hpp"
 
@@ -70,7 +71,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
           
           //cwait for mode_of_operation_display has changed
           if (mode_of_operation_display_ == ModeOfOperation::MODE_HOMING) {
-            std::cout<<"moo:" << mode_of_operation_display_ << " cw: " << control_word << std::endl;
+            std::cout<<"moo:" << std::to_string(mode_of_operation_display_) << " cw: " << std::to_string(control_word) << std::endl;
             //set control word to start homing
             if (!homing_started_)
             {
@@ -83,7 +84,9 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
             {
               //check if homing is complete
               //mointor status word wiht timeout 
-              if (checkHomingStatus(status_word_))
+              int homingStatus = checkHomingStatus(status_word_);
+              bool timeout = std::chrono::steady_clock::now() - homing_start_time_ > homing_timeout_;
+              if (homingStatus == 1)
               {
                 std::cout<< "Homing complete" << std::endl;
                 // set contro word back to operation enabled
@@ -94,9 +97,13 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
                 
               }
 
-              if (std::chrono::steady_clock::now() - homing_start_time_ > homing_timeout_)
+              if (homingStatus == -1 ||  timeout)
               {
-                std::cout<< "Homing timeout" << std::endl;
+                std::cout<< "Homing error" << std::endl;
+                if (timeout)
+                {
+                  std::cout<< "Homing timeout" << std::endl;
+                }
                 control_word = 0x0F;
                 homing_complete_ = true; //umm??? //TODO figure out mitigation here
                 //set mode of operation back to previous mode
@@ -104,9 +111,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
               }
 
             }
-
           }
-
           //then have error handling somehow for halting??
         }
 
@@ -329,7 +334,7 @@ uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
   return control_word;
 }
 
-bool EcCiA402Drive::checkHomingStatus(uint16_t status_word)
+int EcCiA402Drive::checkHomingStatus(uint16_t status_word)
 {
   uint16_t homing_state = status_word & static_cast<uint16_t>(HomingState::HOMING_MASK);
   //TODO use proper logging here
@@ -355,17 +360,22 @@ bool EcCiA402Drive::checkHomingStatus(uint16_t status_word)
       std::cout << "Homing complete" << std::endl;
       return true;
     }
+    case static_cast<uint16_t>(HomingState::HOMING_ERROR_MOTOR_MOVING): 
+    {
+      std::cout << "Homing error: motor moving" << std::endl;
+      return -1;
+    }
     case static_cast<uint16_t>(HomingState::HOMING_ERROR): 
     {
-      std::cout << "Homing error" << std::endl;
-      break;
+      std::cout << "Homing error: motor still" << std::endl;
+      return -1;
     }
     default: 
     {
       std::cout << "Homing state not defined (masked status: 0x" 
                 << std::hex << homing_state << std::dec << ")" 
                 << std::endl;
-      break;
+      return -1;
     }
   }
   return false;

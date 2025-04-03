@@ -94,13 +94,13 @@ protected:
   int8_t prev_mode_of_operation_ = -1;
   int homing_method_ = -1;
   /**
-   * @brief returns true if homing is complete
+   * @brief returns 1 if homing complete, 0 if in progress, -1 on error
    * 
    * @param status_word 
    * @return true 
    * @return false 
    */
-  bool checkHomingStatus(uint16_t status_word);
+  int checkHomingStatus(uint16_t status_word);
 
   enum class HomingState:uint16_t
   {
@@ -108,7 +108,8 @@ protected:
     HOMING_NOT_STARTED = (1<<10),
     HOMING_ATTAINED = (1 << 12),
     HOMING_COMPLETE = HOMING_ATTAINED | HOMING_NOT_STARTED, // from somanet docs??
-    HOMING_ERROR = (1 << 13),
+    HOMING_ERROR_MOTOR_MOVING = (1 << 13),
+    HOMING_ERROR = (1 << 13)| (1 << 10),
     HOMING_MASK = HOMING_NOT_STARTED | HOMING_ATTAINED | HOMING_ERROR,
   };
 
