@@ -70,6 +70,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
           
           //cwait for mode_of_operation_display has changed
           if (mode_of_operation_display_ == ModeOfOperation::MODE_HOMING) {
+            std::cout<<"moo:" << mode_of_operation_display_ << " cw: " << control_word << std::endl;
             //set control word to start homing
             if (!homing_started_)
             {
@@ -78,8 +79,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
               homing_started_ = true;
               homing_start_time_ = std::chrono::steady_clock::now();
             }
-
-            if (homing_started_) //explicit for clarity
+            else if (homing_started_) //explicit for clarity
             {
               //check if homing is complete
               //mointor status word wiht timeout 
@@ -362,7 +362,9 @@ bool EcCiA402Drive::checkHomingStatus(uint16_t status_word)
     }
     default: 
     {
-      std::cout << "Homing state not defined" << std::endl;
+      std::cout << "Homing state not defined (masked status: 0x" 
+                << std::hex << homing_state << std::dec << ")" 
+                << std::endl;
       break;
     }
   }
