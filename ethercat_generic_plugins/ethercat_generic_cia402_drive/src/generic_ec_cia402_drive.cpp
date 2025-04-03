@@ -57,12 +57,18 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
       }
       auto& control_word_pdo =  pdo_channels_info_[index];
       auto& control_word = control_word_pdo.default_value;
-      if (auto_homing_ && !homing_complete_) {
+      if (auto_homing_) {
         //TODOget homing method
         //!if homing method is 0 then we skip all this
 
+        if (homing_complete_ && mode_of_operation_ == ModeOfOperation::MODE_HOMING)
+        {
+          std::cout<< "Switching Homing mode" << std::endl;
+          mode_of_operation_ = prev_mode_of_operation_;
+        }
+
         //wait to get to state_operation_enabled
-        if (state_ == STATE_OPERATION_ENABLED) {
+        if (state_ == STATE_OPERATION_ENABLED && !homing_complete_) {
           //change mode of operation to homing
           if (mode_of_operation_ != ModeOfOperation::MODE_HOMING) {
             prev_mode_of_operation_ = mode_of_operation_;
@@ -108,14 +114,16 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
 
             }
           }
-          //then have error handling somehow for halting??
+      
         }
+        else if (state_ != STATE_OPERATION_ENABLED && !homing_complete_)
+        {
+          std::cout<< "Homing not complete, resetting homing varibales" << std::endl;
+          homing_complete_ = false;
+          homing_started_ = false;
+        }
+      
 
-      }
-      else if (auto_homing_ && homing_complete_ && mode_of_operation_display_ == ModeOfOperation::MODE_HOMING)
-      {
-        std::cout<< "Switching Homing mode" << std::endl;
-        mode_of_operation_ = prev_mode_of_operation_;
       }
     
     }
