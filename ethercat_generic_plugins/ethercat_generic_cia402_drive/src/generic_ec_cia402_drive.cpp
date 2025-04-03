@@ -73,6 +73,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
             //set control word to start homing
             if (!homing_started_)
             {
+              std::cout<< "Homing started" << std::endl;
               control_word = 0x1F; 
               homing_started_ = true;
               homing_start_time_ = std::chrono::steady_clock::now();
