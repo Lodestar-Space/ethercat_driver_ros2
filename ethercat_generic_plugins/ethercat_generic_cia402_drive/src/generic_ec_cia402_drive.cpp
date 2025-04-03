@@ -338,6 +338,7 @@ int EcCiA402Drive::checkHomingStatus(uint16_t status_word)
 {
   uint16_t homing_state = status_word & static_cast<uint16_t>(HomingState::HOMING_MASK);
   //TODO use proper logging here
+  std::cout<< "Homing state: " << std::to_string(homing_state) << std::endl;
   switch (homing_state) 
   {
     case static_cast<uint16_t>(HomingState::HOMING_IN_PROGRESS): 
@@ -363,12 +364,12 @@ int EcCiA402Drive::checkHomingStatus(uint16_t status_word)
     case static_cast<uint16_t>(HomingState::HOMING_ERROR_MOTOR_MOVING): 
     {
       std::cout << "Homing error: motor moving" << std::endl;
-      return -1;
+      return 0;
     }
     case static_cast<uint16_t>(HomingState::HOMING_ERROR): 
     {
       std::cout << "Homing error: motor still" << std::endl;
-      return -1;
+      return 0;
     }
     default: 
     {
