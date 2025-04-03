@@ -88,6 +88,11 @@ protected:
   // Homing parameters
   std::chrono::steady_clock::time_point homing_start_time_;
   std::chrono::milliseconds homing_timeout_ = std::chrono::milliseconds(30000); //default 30 seconds
+  
+  //? this is a bodge to allow the position to udpate to the new reference
+  std::chrono::steady_clock::time_point homing_finish_time_;
+  std::chrono::milliseconds homing_switch_delay_ = std::chrono::milliseconds(1000); //default 1 second 
+  
   bool homing_started_ = false;
   bool homing_complete_ = false;
   bool auto_homing_ = false;

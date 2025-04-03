@@ -61,10 +61,14 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
         //TODOget homing method
         //!if homing method is 0 then we skip all this
 
-        if (state_ == STATE_OPERATION_ENABLED && homing_complete_ && mode_of_operation_ == ModeOfOperation::MODE_HOMING)
+        if (state_ == STATE_OPERATION_ENABLED && 
+            homing_complete_ && 
+            mode_of_operation_ == ModeOfOperation::MODE_HOMING &&
+            std::chrono::steady_clock::now() - homing_finish_time_ > homing_switch_delay_)
         {
           std::cout<< "Switching Homing mode" << std::endl;
           mode_of_operation_ = prev_mode_of_operation_;
+          default_position_updated_ = false;
         }
 
         //wait to get to state_operation_enabled
@@ -98,10 +102,8 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
                 std::cout<< "Homing complete" << std::endl;
                 // set contro word back to operation enabled
                 control_word = 0x0F;
-                homing_complete_ = true;
-                //force a update to default position
-              default_position_updated_ = false;   
-                
+                homing_complete_ = true; 
+                homing_finish_time_ = std::chrono::steady_clock::now();
               }
 
               if (homingStatus == -1 ||  timeout)
@@ -113,8 +115,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
                 }
                 control_word = 0x0F;
                 homing_complete_ = true; //umm??? //TODO figure out mitigation here
-                //force a update to default position
-                default_position_updated_ = false;   
+                homing_finish_time_ = std::chrono::steady_clock::now();
               }
 
             }
@@ -147,6 +148,8 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
             //only update the default position once
             default_position_updated_ = true;
             std::cout<< "default position updated" << std::endl;
+            std::cout<< "default position: " << std::to_string(pdo_info.default_value) << std::endl;
+            std::cout<< "last position: " << std::to_string(last_position_) << std::endl;
           }
           else 
           {
