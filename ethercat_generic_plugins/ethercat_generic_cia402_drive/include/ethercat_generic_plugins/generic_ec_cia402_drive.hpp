@@ -109,7 +109,7 @@ protected:
     HOMING_ATTAINED = (1 << 12),
     HOMING_COMPLETE = HOMING_ATTAINED | HOMING_NOT_STARTED, // from somanet docs??
     HOMING_ERROR_MOTOR_MOVING = (1 << 13),
-    HOMING_ERROR = (1 << 13)| (1 << 10),
+    HOMING_ERROR = (1 << 13) | (1 << 10),
     HOMING_MASK = HOMING_NOT_STARTED | HOMING_ATTAINED | HOMING_ERROR,
   };
 

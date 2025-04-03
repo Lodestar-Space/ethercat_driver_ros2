@@ -59,7 +59,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
       auto& control_word = control_word_pdo.default_value;
       if (auto_homing_ && !homing_complete_) {
         //TODOget homing method
-        //!if homing method is 0,35,37 then we skip all this
+        //!if homing method is 0 then we skip all this
 
         //wait to get to state_operation_enabled
         if (state_ == STATE_OPERATION_ENABLED) {
@@ -75,7 +75,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
             //set control word to start homing
             if (!homing_started_)
             {
-              std::cout<< "Homing started" << std::endl;
+              std::cout<< "Homing called" << std::endl;
               control_word = 0x1F; 
               homing_started_ = true;
               homing_start_time_ = std::chrono::steady_clock::now();
@@ -92,8 +92,6 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
                 // set contro word back to operation enabled
                 control_word = 0x0F;
                 homing_complete_ = true;
-                //set mode of operation back to previous mode
-                mode_of_operation_ = prev_mode_of_operation_;
                 
               }
 
@@ -106,8 +104,6 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
                 }
                 control_word = 0x0F;
                 homing_complete_ = true; //umm??? //TODO figure out mitigation here
-                //set mode of operation back to previous mode
-                mode_of_operation_ = prev_mode_of_operation_;
               }
 
             }
@@ -116,6 +112,13 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
         }
 
       }
+
+      if (auto_homing_ && homing_complete_ && mode_of_operation_display_ == ModeOfOperation::MODE_HOMING)
+      {
+        std::cout<< "Switching Homing mode" << std::endl;
+        mode_of_operation_ = prev_mode_of_operation_;
+      }
+    
     }
   }
 
@@ -364,12 +367,12 @@ int EcCiA402Drive::checkHomingStatus(uint16_t status_word)
     case static_cast<uint16_t>(HomingState::HOMING_ERROR_MOTOR_MOVING): 
     {
       std::cout << "Homing error: motor moving" << std::endl;
-      return 0;
+      return -1;
     }
     case static_cast<uint16_t>(HomingState::HOMING_ERROR): 
     {
       std::cout << "Homing error: motor still" << std::endl;
-      return 0;
+      return -1;
     }
     default: 
     {
@@ -379,7 +382,7 @@ int EcCiA402Drive::checkHomingStatus(uint16_t status_word)
       return -1;
     }
   }
-  return false;
+  return 0;
 }
 
 }  // namespace ethercat_generic_plugins
