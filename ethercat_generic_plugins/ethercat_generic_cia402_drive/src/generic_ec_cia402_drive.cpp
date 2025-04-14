@@ -82,7 +82,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
           
           //cwait for mode_of_operation_display has changed
           if (mode_of_operation_display_ == ModeOfOperation::MODE_HOMING) {
-            std::cout<<"moo:" << std::to_string(mode_of_operation_display_) << " cw: " << std::to_string(control_word) << std::endl;
+            // std::cout<<"moo:" << std::to_string(mode_of_operation_display_) << " cw: " << std::to_string(control_word) << std::endl;
             //set control word to start homing
             if (!homing_started_)
             {
@@ -96,7 +96,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
               //check if homing is complete
               //mointor status word wiht timeout 
               int homingStatus = checkHomingStatus(status_word_);
-              bool timeout = std::chrono::steady_clock::now() - homing_start_time_ > homing_timeout_;
+              bool timeout = (std::chrono::steady_clock::now() - homing_start_time_) > homing_timeout_;
               if (homingStatus == 1)
               {
                 std::cout<< "Homing complete" << std::endl;

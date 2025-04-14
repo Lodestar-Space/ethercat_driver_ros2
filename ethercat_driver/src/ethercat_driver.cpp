@@ -326,13 +326,14 @@ CallbackReturn EthercatDriver::on_activate(
 
   bool running = true;
   waitingForActivation_ = true;
+  RCLCPP_INFO(rclcpp::get_logger("EthercatDriver"), "Waiting for slave activation");
   while (running) {
     // wait until next shot
     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
     // update EtherCAT bus
 
     // master_.update();
-    RCLCPP_INFO(rclcpp::get_logger("EthercatDriver"), "updated!");
+    // RCLCPP_INFO(rclcpp::get_logger("EthercatDriver"), "updated!");
 
     // check if operational
     bool isAllInit = true;
