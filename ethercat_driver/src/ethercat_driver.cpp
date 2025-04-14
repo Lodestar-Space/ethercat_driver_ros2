@@ -332,7 +332,7 @@ CallbackReturn EthercatDriver::on_activate(
     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
     // update EtherCAT bus
 
-    // master_.update();
+    master_.update();
     // RCLCPP_INFO(rclcpp::get_logger("EthercatDriver"), "updated!");
 
     // check if operational
