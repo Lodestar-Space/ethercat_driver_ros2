@@ -86,6 +86,7 @@ private:
   ethercat_interface::EcMaster master_;
   std::mutex ec_mutex_;
   bool activated_;
+  bool waitingForActivation_;
 };
 }  // namespace ethercat_driver
 

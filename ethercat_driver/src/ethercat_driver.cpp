@@ -311,24 +311,27 @@ CallbackReturn EthercatDriver::on_activate(
     }
   }
 
+  
+
   if (!master_.activate()) {
     RCLCPP_ERROR(rclcpp::get_logger("EthercatDriver"), "Activate EcMaster failed");
     return CallbackReturn::ERROR;
   }
   RCLCPP_INFO(rclcpp::get_logger("EthercatDriver"), "Activated EcMaster!");
 
-  // start after one second
+  //get current time
   struct timespec t;
   clock_gettime(CLOCK_MONOTONIC, &t);
-  t.tv_sec++;
+  
 
   bool running = true;
+  waitingForActivation_ = true;
   while (running) {
     // wait until next shot
     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
     // update EtherCAT bus
 
-    master_.update();
+    // master_.update();
     RCLCPP_INFO(rclcpp::get_logger("EthercatDriver"), "updated!");
 
     // check if operational
@@ -340,6 +343,8 @@ CallbackReturn EthercatDriver::on_activate(
       running = false;
     }
     // calculate next shot. carry over nanoseconds into microseconds.
+
+    //handle any overlfow
     t.tv_nsec += master_.getInterval();
     while (t.tv_nsec >= 1000000000) {
       t.tv_nsec -= 1000000000;
@@ -351,6 +356,7 @@ CallbackReturn EthercatDriver::on_activate(
     rclcpp::get_logger("EthercatDriver"), "System Successfully started!");
 
   activated_ = true;
+  waitingForActivation_ = false;
 
   return CallbackReturn::SUCCESS;
 }
@@ -378,7 +384,7 @@ hardware_interface::return_type EthercatDriver::read(
 {
   // try to lock so we can avoid blocking the read/write loop on the lock.
   const std::unique_lock<std::mutex> lock(ec_mutex_, std::try_to_lock);
-  if (lock.owns_lock() && activated_) {
+  if (lock.owns_lock() &&  ( activated_ || waitingForActivation_ )) {
     master_.readData();
   }
   return hardware_interface::return_type::OK;
@@ -390,7 +396,7 @@ hardware_interface::return_type EthercatDriver::write(
 {
   // try to lock so we can avoid blocking the read/write loop on the lock.
   const std::unique_lock<std::mutex> lock(ec_mutex_, std::try_to_lock);
-  if (lock.owns_lock() && activated_) {
+  if (lock.owns_lock() && ( activated_ || waitingForActivation_ ) ) {
     master_.writeData();
   }
   return hardware_interface::return_type::OK;
