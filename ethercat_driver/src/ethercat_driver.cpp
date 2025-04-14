@@ -385,7 +385,7 @@ hardware_interface::return_type EthercatDriver::read(
 {
   // try to lock so we can avoid blocking the read/write loop on the lock.
   const std::unique_lock<std::mutex> lock(ec_mutex_, std::try_to_lock);
-  if (lock.owns_lock() &&  ( activated_ || waitingForActivation_ )) {
+  if (lock.owns_lock() &&  activated_ ) {
     master_.readData();
   }
   return hardware_interface::return_type::OK;
@@ -397,7 +397,7 @@ hardware_interface::return_type EthercatDriver::write(
 {
   // try to lock so we can avoid blocking the read/write loop on the lock.
   const std::unique_lock<std::mutex> lock(ec_mutex_, std::try_to_lock);
-  if (lock.owns_lock() && ( activated_ || waitingForActivation_ ) ) {
+  if (lock.owns_lock() && activated_ ) {
     master_.writeData();
   }
   return hardware_interface::return_type::OK;
