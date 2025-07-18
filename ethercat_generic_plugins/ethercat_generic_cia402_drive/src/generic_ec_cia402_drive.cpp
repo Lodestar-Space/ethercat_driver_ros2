@@ -336,7 +336,6 @@ uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
       std::cout << "SLAVE: " << paramters_["position"] << " STATE_SWITCH_ON"<< std::endl;
       return (control_word & 0b01111111) | 0b00001111;
     case STATE_OPERATION_ENABLED:         // -> GOOD
-      std::cout << "SLAVE: " << paramters_["position"] << " STATE_OPERATION_ENABLED"<< std::endl;
       return control_word;
     case STATE_QUICK_STOP_ACTIVE:         // -> STATE_OPERATION_ENABLED
       std::cout << "SLAVE: " << paramters_["position"] << " STATE_QUICK_STOP_ACTIVE"<< std::endl;
