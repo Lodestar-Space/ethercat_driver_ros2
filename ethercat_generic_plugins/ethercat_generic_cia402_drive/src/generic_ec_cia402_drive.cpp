@@ -203,7 +203,8 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
     if (status_word_ != last_status_word_) {
       state_ = deviceState(status_word_);
       if (state_ != last_state_) {
-        std::cout << "STATE: " << DEVICE_STATE_STR.at(state_)
+        std::cout << "SLAVE: " << paramters_["position"]
+                  << "STATE: " << DEVICE_STATE_STR.at(state_)
                   << " with status word :" << status_word_ << std::endl;
       }
     }
@@ -233,6 +234,8 @@ bool EcCiA402Drive::setupSlave(
     std::cerr << "EcCiA402Drive: failed to find 'slave_config' tag in URDF." << std::endl;
     return false;
   }
+
+  std::cout<< "POSITION:" << paramters_["position"] << std::endl;
 
   setup_interface_mapping();
   setup_syncs();
