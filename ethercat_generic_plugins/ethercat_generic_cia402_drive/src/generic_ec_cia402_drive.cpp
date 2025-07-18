@@ -66,7 +66,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
             mode_of_operation_ == ModeOfOperation::MODE_HOMING &&
             std::chrono::steady_clock::now() - homing_finish_time_ > homing_switch_delay_)
         {
-          std::cout<< "Switching Homing mode" << std::endl;
+          std::cout<< "SLAVE: " << paramters_["position"] << " Switching Homing mode" << std::endl;
           mode_of_operation_ = prev_mode_of_operation_;
           default_position_updated_ = false;
         }
@@ -151,9 +151,9 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
           {
             //only update the default position once
             default_position_updated_ = true;
-            std::cout<< "default position updated" << std::endl;
-            std::cout<< "default position: " << std::to_string(pdo_info.default_value) << std::endl;
-            std::cout<< "last position: " << std::to_string(last_position_) << std::endl;
+            std::cout<< "SLAVE: " << paramters_["position"] << " default position updated" << std::endl;
+            std::cout<< "SLAVE: " << paramters_["position"] << " default position: " << std::to_string(pdo_info.default_value) << std::endl;
+            std::cout<< "SLAVE: " << paramters_["position"] << " last position: " << std::to_string(last_position_) << std::endl;
           }
           else 
           {
@@ -324,18 +324,25 @@ uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
     case STATE_START:                     // -> STATE_NOT_READY_TO_SWITCH_ON (automatic)
       return control_word;
     case STATE_NOT_READY_TO_SWITCH_ON:    // -> STATE_SWITCH_ON_DISABLED (automatic)
+      std::cout << "SLAVE: " << paramters_["position"] << " STATE_NOT_READY_TO_SWITCH_ON"<< std::endl;
       return control_word;
     case STATE_SWITCH_ON_DISABLED:        // -> STATE_READY_TO_SWITCH_ON
+      std::cout << "SLAVE: " << paramters_["position"] << " STATE_SWITCH_ON_DISABLED"<< std::endl;
       return (control_word & 0b01111110) | 0b00000110;
     case STATE_READY_TO_SWITCH_ON:        // -> STATE_SWITCH_ON
+      std::cout << "SLAVE: " << paramters_["position"] << " STATE_READY_TO_SWITCH_ON"<< std::endl;
       return (control_word & 0b01110111) | 0b00000111;
     case STATE_SWITCH_ON:                 // -> STATE_OPERATION_ENABLED
+      std::cout << "SLAVE: " << paramters_["position"] << " STATE_SWITCH_ON"<< std::endl;
       return (control_word & 0b01111111) | 0b00001111;
     case STATE_OPERATION_ENABLED:         // -> GOOD
+      std::cout << "SLAVE: " << paramters_["position"] << " STATE_OPERATION_ENABLED"<< std::endl;
       return control_word;
     case STATE_QUICK_STOP_ACTIVE:         // -> STATE_OPERATION_ENABLED
+      std::cout << "SLAVE: " << paramters_["position"] << " STATE_QUICK_STOP_ACTIVE"<< std::endl;
       return (control_word & 0b01111111) | 0b00001111;
     case STATE_FAULT_REACTION_ACTIVE:     // -> STATE_FAULT (automatic)
+      std::cout << "SLAVE: " << paramters_["position"] << " STATE_FAULT_REACTION_ACTIVE"<< std::endl;
       return control_word;
     case STATE_FAULT:                     // -> STATE_SWITCH_ON_DISABLED
       if (auto_fault_reset_ || fault_reset_) {
