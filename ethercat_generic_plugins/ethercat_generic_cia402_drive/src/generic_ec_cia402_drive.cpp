@@ -86,7 +86,8 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
             //set control word to start homing
             if (!homing_started_)
             {
-              std::cout<< "Homing called" << std::endl;
+              std::cout << "SLAVE: " << paramters_["position"]
+                  <<" Homing called" << std::endl;
               control_word = 0x1F; 
               homing_started_ = true;
               homing_start_time_ = std::chrono::steady_clock::now();
@@ -99,7 +100,8 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
               bool timeout = (std::chrono::steady_clock::now() - homing_start_time_) > homing_timeout_;
               if (homingStatus == 1)
               {
-                std::cout<< "Homing complete" << std::endl;
+                std::cout<< "SLAVE: " << paramters_["position"]
+                  <<" Homing complete" << std::endl;
                 // set contro word back to operation enabled
                 control_word = 0x0F;
                 homing_complete_ = true; 
@@ -108,10 +110,12 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
 
               if (homingStatus == -1 ||  timeout)
               {
-                std::cout<< "Homing error" << std::endl;
+                std::cout<< "SLAVE: " << paramters_["position"]
+                  << " Homing error" << std::endl;
                 if (timeout)
                 {
-                  std::cout<< "Homing timeout" << std::endl;
+                  std::cout<< "SLAVE: " << paramters_["position"]
+                  <<" Homing timeout" << std::endl;
                 }
                 control_word = 0x0F;
                 homing_complete_ = true; //umm??? //TODO figure out mitigation here
@@ -204,7 +208,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
       state_ = deviceState(status_word_);
       if (state_ != last_state_) {
         std::cout << "SLAVE: " << paramters_["position"]
-                  << "STATE: " << DEVICE_STATE_STR.at(state_)
+                  << " STATE: " << DEVICE_STATE_STR.at(state_)
                   << " with status word :" << status_word_ << std::endl;
       }
     }
@@ -234,8 +238,6 @@ bool EcCiA402Drive::setupSlave(
     std::cerr << "EcCiA402Drive: failed to find 'slave_config' tag in URDF." << std::endl;
     return false;
   }
-
-  std::cout<< "POSITION:" << paramters_["position"] << std::endl;
 
   setup_interface_mapping();
   setup_syncs();
@@ -352,7 +354,8 @@ int EcCiA402Drive::checkHomingStatus(uint16_t status_word)
 {
   uint16_t homing_state = status_word & static_cast<uint16_t>(HomingState::HOMING_MASK);
   //TODO use proper logging here
-  std::cout<< "Homing state: " << std::to_string(homing_state) << std::endl;
+  std::cout<< "SLAVE: " << paramters_["position"]
+                  <<" Homing state: " << std::to_string(homing_state) << std::endl;
   switch (homing_state) 
   {
     case static_cast<uint16_t>(HomingState::HOMING_IN_PROGRESS): 
@@ -361,33 +364,40 @@ int EcCiA402Drive::checkHomingStatus(uint16_t status_word)
     }
     case static_cast<uint16_t>(HomingState::HOMING_NOT_STARTED): 
     {
-      std::cout << "Homing not started" << std::endl;
+      std::cout <<"SLAVE: " << paramters_["position"]
+                  << " Homing not started" << std::endl;
       break;
     }
     case static_cast<uint16_t>(HomingState::HOMING_ATTAINED): 
     {
-      std::cout << "Homing attained" << std::endl;
-      std::cout << "Homing complete" << std::endl;
+      std::cout << "SLAVE: " << paramters_["position"]
+                  <<" Homing attained" << std::endl;
+      std::cout <<"SLAVE: " << paramters_["position"]
+                  << " Homing complete" << std::endl;
       return true;
     }
     case static_cast<uint16_t>(HomingState::HOMING_COMPLETE): 
     {
-      std::cout << "Homing complete" << std::endl;
+      std::cout << "SLAVE: " << paramters_["position"]
+                  <<" Homing complete" << std::endl;
       return true;
     }
     case static_cast<uint16_t>(HomingState::HOMING_ERROR_MOTOR_MOVING): 
     {
-      std::cout << "Homing error: motor moving" << std::endl;
+      std::cout <<"SLAVE: " << paramters_["position"]
+                  << " Homing error: motor moving" << std::endl;
       return -1;
     }
     case static_cast<uint16_t>(HomingState::HOMING_ERROR): 
     {
-      std::cout << "Homing error: motor still" << std::endl;
+      std::cout <<"SLAVE: " << paramters_["position"]
+                  << " Homing error: motor still" << std::endl;
       return -1;
     }
     default: 
     {
-      std::cout << "Homing state not defined (masked status: 0x" 
+      std::cout <<"SLAVE: " << paramters_["position"]
+                  << " Homing state not defined (masked status: 0x" 
                 << std::hex << homing_state << std::dec << ")" 
                 << std::endl;
       return -1;
