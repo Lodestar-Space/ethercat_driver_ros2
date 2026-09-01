@@ -32,6 +32,22 @@ bool EcCiA402Drive::initialized() {
   return initialized_ && (homing_complete_ || !auto_homing_);
 }
 
+namespace
+{
+std::string homingStateStr(uint16_t masked_status)
+{
+  switch (masked_status) {
+    case 0x0000: return "IN_PROGRESS";                       // HOMING_IN_PROGRESS
+    case 0x0400: return "NOT_STARTED";                       // HOMING_NOT_STARTED
+    case 0x1000: return "ATTAINED (target not yet reached)"; // HOMING_ATTAINED
+    case 0x1400: return "COMPLETE";                          // HOMING_COMPLETE
+    case 0x2000: return "ERROR (motor still moving)";        // HOMING_ERROR_MOTOR_MOVING
+    case 0x2400: return "ERROR (motor at standstill)";       // HOMING_ERROR
+    default:     return "UNRECOGNIZED";
+  }
+}
+}  // namespace
+
 void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
 {
   // Special case: ControlWord
@@ -75,9 +91,9 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
         if (state_ == STATE_OPERATION_ENABLED && !homing_complete_) {
           //change mode of operation to homing
           if (mode_of_operation_ != ModeOfOperation::MODE_HOMING) {
+            std::cout << "SLAVE: " << paramters_["position"] << " Requesting Homing OPMODE (6)" << std::endl;
             prev_mode_of_operation_ = mode_of_operation_;
             mode_of_operation_ = ModeOfOperation::MODE_HOMING;  
-               
           }
           
           //cwait for mode_of_operation_display has changed
@@ -86,6 +102,7 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
             //set control word to start homing
             if (!homing_started_)
             {
+              std::cout << "SLAVE: " << paramters_["position"] << " Homing OPMODE confirmed" << std::endl;
               std::cout << "SLAVE: " << paramters_["position"]
                   <<" Homing called" << std::endl;
               control_word = 0x1F; 
@@ -359,9 +376,10 @@ uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
 int EcCiA402Drive::checkHomingStatus(uint16_t status_word)
 {
   uint16_t homing_state = status_word & static_cast<uint16_t>(HomingState::HOMING_MASK);
-  //TODO use proper logging here
-  std::cout<< "SLAVE: " << paramters_["position"]
-                  <<" Homing state: " << std::to_string(homing_state) << std::endl;
+  std::cout << "SLAVE: " << paramters_["position"]
+          << " Homing state: " << homingStateStr(homing_state)
+          << " (0x" << std::hex << homing_state
+          << ", status_word: 0x" << status_word << std::dec << ")" << std::endl;
   switch (homing_state) 
   {
     case static_cast<uint16_t>(HomingState::HOMING_IN_PROGRESS): 
