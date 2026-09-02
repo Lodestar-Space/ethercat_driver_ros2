@@ -411,50 +411,34 @@ int EcCiA402Drive::checkHomingStatus(uint16_t status_word)
             << " (0x" << std::hex << homing_state
             << ", status_word: 0x" << status_word << std::dec << ")" << std::endl;
   }
-  switch (homing_state)
+    switch (homing_state)
   {
-    case static_cast<uint16_t>(HomingState::HOMING_IN_PROGRESS): 
+    case static_cast<uint16_t>(HomingState::HOMING_IN_PROGRESS):
     {
       break;
     }
-    case static_cast<uint16_t>(HomingState::HOMING_NOT_STARTED): 
+    case static_cast<uint16_t>(HomingState::HOMING_NOT_STARTED):
     {
-      std::cout <<"SLAVE: " << paramters_["position"]
-                  << " Homing not started" << std::endl;
       break;
     }
-    case static_cast<uint16_t>(HomingState::HOMING_ATTAINED): 
+    case static_cast<uint16_t>(HomingState::HOMING_ATTAINED):
     {
-      std::cout << "SLAVE: " << paramters_["position"]
-                  <<" Homing attained" << std::endl;
-      std::cout <<"SLAVE: " << paramters_["position"]
-                  << " Homing complete" << std::endl;
       return true;
     }
-    case static_cast<uint16_t>(HomingState::HOMING_COMPLETE): 
+    case static_cast<uint16_t>(HomingState::HOMING_COMPLETE):
     {
-      std::cout << "SLAVE: " << paramters_["position"]
-                  <<" Homing complete" << std::endl;
       return true;
     }
-    case static_cast<uint16_t>(HomingState::HOMING_ERROR_MOTOR_MOVING): 
+    case static_cast<uint16_t>(HomingState::HOMING_ERROR_MOTOR_MOVING):
     {
-      std::cout <<"SLAVE: " << paramters_["position"]
-                  << " Homing error: motor moving" << std::endl;
       return -1;
     }
-    case static_cast<uint16_t>(HomingState::HOMING_ERROR): 
+    case static_cast<uint16_t>(HomingState::HOMING_ERROR):
     {
-      std::cout <<"SLAVE: " << paramters_["position"]
-                  << " Homing error: motor still" << std::endl;
       return -1;
     }
-    default: 
+    default:
     {
-      std::cout <<"SLAVE: " << paramters_["position"]
-                  << " Homing state not defined (masked status: 0x" 
-                << std::hex << homing_state << std::dec << ")" 
-                << std::endl;
       return -1;
     }
   }
