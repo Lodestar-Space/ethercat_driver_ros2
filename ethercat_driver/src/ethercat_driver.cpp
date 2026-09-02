@@ -300,6 +300,16 @@ CallbackReturn EthercatDriver::on_activate(
         sdo,
         &abort_code
       );
+
+      // print the SDO download, matching the PDO entry print's tuple style
+      std::cout << "{" << ec_module_parameters_[i]["position"];
+      std::cout << ", 0x" << std::hex << sdo.index;
+      std::cout << ", 0x" << std::hex << static_cast<int>(sdo.sub_index);
+      std::cout << ", " << sdo.data_type;
+      std::cout << ", " << std::dec << sdo.data;
+      std::cout << ", " << (ret ? "FAILED" : "OK");
+      std::cout << "}" << std::dec << std::endl;
+
       if (ret) {
         RCLCPP_INFO(
           rclcpp::get_logger("EthercatDriver"),
@@ -309,9 +319,7 @@ CallbackReturn EthercatDriver::on_activate(
         );
       }
     }
-  }
-
-  
+  }  
 
   if (!master_.activate()) {
     RCLCPP_ERROR(rclcpp::get_logger("EthercatDriver"), "Activate EcMaster failed");

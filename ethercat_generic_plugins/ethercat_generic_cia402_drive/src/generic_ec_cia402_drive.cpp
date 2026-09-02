@@ -115,6 +115,15 @@ void EcCiA402Drive::processData(size_t index, uint8_t * domain_address)
               //mointor status word wiht timeout 
               int homingStatus = checkHomingStatus(status_word_);
               bool timeout = (std::chrono::steady_clock::now() - homing_start_time_) > homing_timeout_;
+              bool too_fast = (std::chrono::steady_clock::now() - homing_start_time_) < homing_min_duration_;
+
+              if (homingStatus == 1 && too_fast) {
+                std::cout << "SLAVE: " << paramters_["position"]
+                          << " Homing reported complete faster than " << homing_min_duration_.count()
+                          << "ms - ignoring, waiting for a real completion" << std::endl;
+                homingStatus = 0;
+              }
+
               if (homingStatus == 1)
               {
                 std::cout<< "SLAVE: " << paramters_["position"]
@@ -337,33 +346,48 @@ DeviceState EcCiA402Drive::deviceState(uint16_t status_word)
 /** returns the control word that will take device from state to next desired state */
 uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
 {
+  bool state_changed = (state != last_transition_print_state_);
+  last_transition_print_state_ = state;
+
   switch (state) {
-    case STATE_START:                     // -> STATE_NOT_READY_TO_SWITCH_ON (automatic)
+    case STATE_START:
       return control_word;
-    case STATE_NOT_READY_TO_SWITCH_ON:    // -> STATE_SWITCH_ON_DISABLED (automatic)
-      std::cout << "SLAVE: " << paramters_["position"] << " STATE_NOT_READY_TO_SWITCH_ON"<< std::endl;
+    case STATE_NOT_READY_TO_SWITCH_ON:
+      if (state_changed) {
+        std::cout << "SLAVE: " << paramters_["position"] << " STATE_NOT_READY_TO_SWITCH_ON"<< std::endl;
+      }
       return control_word;
-    case STATE_SWITCH_ON_DISABLED:        // -> STATE_READY_TO_SWITCH_ON
-      std::cout << "SLAVE: " << paramters_["position"] << " STATE_SWITCH_ON_DISABLED"<< std::endl;
+    case STATE_SWITCH_ON_DISABLED:
+      if (state_changed) {
+        std::cout << "SLAVE: " << paramters_["position"] << " STATE_SWITCH_ON_DISABLED"<< std::endl;
+      }
       return (control_word & 0b01111110) | 0b00000110;
-    case STATE_READY_TO_SWITCH_ON:        // -> STATE_SWITCH_ON
-      std::cout << "SLAVE: " << paramters_["position"] << " STATE_READY_TO_SWITCH_ON"<< std::endl;
+    case STATE_READY_TO_SWITCH_ON:
+      if (state_changed) {
+        std::cout << "SLAVE: " << paramters_["position"] << " STATE_READY_TO_SWITCH_ON"<< std::endl;
+      }
       return (control_word & 0b01110111) | 0b00000111;
-    case STATE_SWITCH_ON:                 // -> STATE_OPERATION_ENABLED
-      std::cout << "SLAVE: " << paramters_["position"] << " STATE_SWITCH_ON"<< std::endl;
+    case STATE_SWITCH_ON:
+      if (state_changed) {
+        std::cout << "SLAVE: " << paramters_["position"] << " STATE_SWITCH_ON"<< std::endl;
+      }
       return (control_word & 0b01111111) | 0b00001111;
-    case STATE_OPERATION_ENABLED:         // -> GOOD
+    case STATE_OPERATION_ENABLED:
       return control_word;
-    case STATE_QUICK_STOP_ACTIVE:         // -> STATE_OPERATION_ENABLED
-      std::cout << "SLAVE: " << paramters_["position"] << " STATE_QUICK_STOP_ACTIVE"<< std::endl;
+    case STATE_QUICK_STOP_ACTIVE:
+      if (state_changed) {
+        std::cout << "SLAVE: " << paramters_["position"] << " STATE_QUICK_STOP_ACTIVE"<< std::endl;
+      }
       return (control_word & 0b01111111) | 0b00001111;
-    case STATE_FAULT_REACTION_ACTIVE:     // -> STATE_FAULT (automatic)
-      std::cout << "SLAVE: " << paramters_["position"] << " STATE_FAULT_REACTION_ACTIVE"<< std::endl;
+    case STATE_FAULT_REACTION_ACTIVE:
+      if (state_changed) {
+        std::cout << "SLAVE: " << paramters_["position"] << " STATE_FAULT_REACTION_ACTIVE"<< std::endl;
+      }
       return control_word;
-    case STATE_FAULT:                     // -> STATE_SWITCH_ON_DISABLED
+    case STATE_FAULT:
       if (auto_fault_reset_ || fault_reset_) {
         fault_reset_ = false;
-        return (control_word & 0b11111111) | 0b10000000;     // automatic reset
+        return (control_word & 0b11111111) | 0b10000000;
       } else {
         return control_word;
       }

@@ -72,6 +72,7 @@ protected:
 
   DeviceState last_state_ = STATE_START;
   DeviceState state_ = STATE_START;
+  DeviceState last_transition_print_state_ = STATE_START;
 
   bool initialized_ = false;
 
@@ -92,6 +93,10 @@ protected:
   //? this is a bodge to allow the position to udpate to the new reference
   std::chrono::steady_clock::time_point homing_finish_time_;
   std::chrono::milliseconds homing_switch_delay_ = std::chrono::milliseconds(1000); //default 1 second 
+
+  // guards against a spurious instant "complete" - method -4 alone needs >=500ms
+  // just for the torque baseline per Synapticon docs, so anything faster isn't real 
+  std::chrono::milliseconds homing_min_duration_ = std::chrono::milliseconds(1000); 
   
   bool homing_started_ = false;
   bool homing_complete_ = false;
