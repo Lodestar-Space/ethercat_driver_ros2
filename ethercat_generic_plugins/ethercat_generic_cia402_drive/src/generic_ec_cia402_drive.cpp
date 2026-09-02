@@ -400,11 +400,18 @@ uint16_t EcCiA402Drive::transition(DeviceState state, uint16_t control_word)
 int EcCiA402Drive::checkHomingStatus(uint16_t status_word)
 {
   uint16_t homing_state = status_word & static_cast<uint16_t>(HomingState::HOMING_MASK);
-  std::cout << "SLAVE: " << paramters_["position"]
-          << " Homing state: " << homingStateStr(homing_state)
-          << " (0x" << std::hex << homing_state
-          << ", status_word: 0x" << status_word << std::dec << ")" << std::endl;
-  switch (homing_state) 
+
+  // the drive holds one state for thousands of cycles - log transitions only
+  const bool state_changed = (static_cast<int>(homing_state) != last_homing_state_);
+  last_homing_state_ = static_cast<int>(homing_state);
+
+  if (state_changed) {
+    std::cout << "SLAVE: " << paramters_["position"]
+            << " Homing state: " << homingStateStr(homing_state)
+            << " (0x" << std::hex << homing_state
+            << ", status_word: 0x" << status_word << std::dec << ")" << std::endl;
+  }
+  switch (homing_state)
   {
     case static_cast<uint16_t>(HomingState::HOMING_IN_PROGRESS): 
     {

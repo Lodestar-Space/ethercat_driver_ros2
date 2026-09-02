@@ -484,12 +484,6 @@ void EcMaster::checkDomainState(uint32_t domain)
   ec_domain_state_t ds;
   ecrt_domain_state(domain_info->domain, &ds);
 
-  if (ds.working_counter != domain_info->domain_state.working_counter) {
-    printf("Domain: WC %u.\n", ds.working_counter);
-  }
-  if (ds.wc_state != domain_info->domain_state.wc_state) {
-    printf("Domain: State %u.\n", ds.wc_state);
-  }
   domain_info->domain_state = ds;
 }
 
@@ -499,15 +493,6 @@ void EcMaster::checkMasterState()
   ec_master_state_t ms;
   ecrt_master_state(master_, &ms);
 
-  if (ms.slaves_responding != master_state_.slaves_responding) {
-    printf("%u slave(s).\n", ms.slaves_responding);
-  }
-  if (ms.al_states != master_state_.al_states) {
-    printf("Master AL states: 0x%02X.\n", ms.al_states);
-  }
-  if (ms.link_up != master_state_.link_up) {
-    printf("Link is %s.\n", ms.link_up ? "up" : "down");
-  }
   master_state_ = ms;
 }
 
@@ -518,15 +503,7 @@ void EcMaster::checkSlaveStates()
     ec_slave_config_state_t s;
     ecrt_slave_config_state(slave.config, &s);
 
-    if (s.al_state != slave.config_state.al_state) {
-      // this spams the terminal at initialization.
-      printf("Slave: State 0x%02X.\n", s.al_state);
-    }
-    if (s.online != slave.config_state.online) {
-      printf("Slave: %s.\n", s.online ? "online" : "offline");
-    }
     if (s.operational != slave.config_state.operational) {
-      printf("Slave: %soperational.\n", s.operational ? "" : "Not ");
       slave.slave->set_state_is_operational(s.operational ? true : false);
     }
     slave.config_state = s;

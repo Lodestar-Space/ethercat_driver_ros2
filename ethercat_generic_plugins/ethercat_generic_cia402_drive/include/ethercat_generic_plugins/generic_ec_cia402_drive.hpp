@@ -97,6 +97,10 @@ protected:
   // guards against a spurious instant "complete" - method -4 alone needs >=500ms
   // just for the torque baseline per Synapticon docs, so anything faster isn't real 
   std::chrono::milliseconds homing_min_duration_ = std::chrono::milliseconds(1000); 
+
+  // last masked homing state seen, so the state line logs on change only
+  // (-1 = nothing seen yet; no valid masked state is negative)
+  int last_homing_state_ = -1;
   
   bool homing_started_ = false;
   bool homing_complete_ = false;
